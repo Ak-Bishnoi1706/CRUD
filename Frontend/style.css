@@ -1,0 +1,16 @@
+body{
+  margin: 0;
+  padding: 0;
+}
+.stdform{
+  margin: 1em;
+  padding: 1em;
+}
+.input-group-text{
+  display: flex;
+  flex-direction: column;
+}
+table{
+  margin: 0.5em;
+  padding: 0.5em;
+}
