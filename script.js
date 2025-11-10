@@ -7,7 +7,7 @@ document.getElementById("StudentForm").addEventListener("submit", function (e) {
     const rollno = document.getElementById("rollNo").value;
 
   // Send data to backend
-  fetch("/", {
+  fetch("/add", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name, email, rollno })
@@ -19,9 +19,9 @@ document.getElementById("StudentForm").addEventListener("submit", function (e) {
   //Inserting data to table row
     const row = document.createElement("tr");
     row.innerHTML = `
-  <td>${name}</td>
-  <td>${email}</td>
-  <td>${rollno}</td>
+  <td>${name} </td>
+  <td>${email} </td>
+  <td>${rollno} </td>
   <td>
     <button class="edit-btn btn btn-sm btn-warning">Edit</button>
     <button class="delete-btn btn btn-sm btn-danger">Delete</button>
