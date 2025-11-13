@@ -9,7 +9,7 @@ document.getElementById("StudentForm").addEventListener("submit", function (e) {
   // Send data to backend
   fetch("/add", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json" }, //json format data stored in mongodb document
     body: JSON.stringify({ name, email, rollno })
   })
   .then(res => res.text())
