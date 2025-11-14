@@ -1,72 +1,73 @@
-// ✅ Initialize Firebase
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
-};
+// Load all users or search results
+async function loadUsers(query = "") {
+  let url = "http://localhost:3000/users";
+  if (query) {
+    url += `?search=${encodeURIComponent(query)}`;
+  }
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const studentRef = db.ref("students");
+  const response = await fetch(url);
+  const users = await response.json();
 
-// ✅ Handle form submit
-document.getElementById("StudentForm").addEventListener("submit", function (e) {
+  const tableBody = document.getElementById("studentTableBody");
+  tableBody.innerHTML = ""; // clear old rows
+
+  users.forEach(user => {
+    const row = document.createElement("tr");
+    row.setAttribute("data-id", user._id); // store MongoDB ID for delete
+    row.innerHTML = `
+      <td>${user.name}</td>
+      <td>${user.email}</td>
+      <td>${user.rollno}</td>
+      <td>
+        <button class="edit-btn btn btn-sm btn-warning">Edit</button>
+        <button class="delete-btn btn btn-sm btn-danger">Delete</button>
+      </td>`;
+    tableBody.appendChild(row);
+
+    // Edit button
+    row.querySelector(".edit-btn").addEventListener("click", function () {
+      const cells = row.querySelectorAll("td");
+      document.getElementById("name").value = cells[0].textContent;
+      document.getElementById("InputEmail").value = cells[1].textContent;
+      document.getElementById("rollNo").value = cells[2].textContent;
+      row.remove();
+    });
+
+    // Delete button
+    row.querySelector(".delete-btn").addEventListener("click", async function () {
+      const studentId = row.getAttribute("data-id");
+      await fetch(`http://localhost:3000/users/${studentId}`, { method: "DELETE" });
+      row.remove();
+    });
+  });
+}
+
+// Handle form submission
+document.getElementById("StudentForm").addEventListener("submit", async function (e) {
   e.preventDefault();
 
   const name = document.getElementById("name").value;
   const email = document.getElementById("InputEmail").value;
   const rollno = document.getElementById("rollNo").value;
 
-  const newStudent = studentRef.push();
-  newStudent.set({ name, email, rollno });
+  const response = await fetch("http://localhost:3000/submit", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, email, rollno })
+  });
+
+  const result = await response.json();
+  alert(result.message);
 
   document.getElementById("StudentForm").reset();
+  loadUsers(); // refresh table
 });
 
-// ✅ Fetch and display data
-studentRef.on("value", (snapshot) => {
-  const tableBody = document.getElementById("studentTableBody");
-  tableBody.innerHTML = "";
-
-  snapshot.forEach((childSnapshot) => {
-    const student = childSnapshot.val();
-    const studentId = childSnapshot.key;
-
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td>${student.name}</td>
-      <td>${student.email}</td>
-      <td>${student.rollno}</td>
-      <td>
-        <button class="edit-btn btn btn-sm btn-warning" data-id="${studentId}">Edit</button>
-        <button class="delete-btn btn btn-sm btn-danger" data-id="${studentId}">Delete</button>
-      </td>
-    `;
-
-    tableBody.appendChild(row);
-  });
+// Search listener (outside submit)
+document.getElementById("searchBox").addEventListener("input", function(e) {
+  const query = e.target.value;
+  loadUsers(query);
 });
 
-// ✅ Delete student
-document.getElementById("studentTableBody").addEventListener("click", function (e) {
-  if (e.target.classList.contains("delete-btn")) {
-    const studentId = e.target.getAttribute("data-id");
-    db.ref("students/" + studentId).remove();
-  }
-});
-
-// ✅ Search student
-document.getElementById("searchInput").addEventListener("input", function () {
-  const query = this.value.toLowerCase();
-  const rows = document.querySelectorAll("#studentTableBody tr");
-
-  rows.forEach(row => {
-    const name = row.children[0].textContent.toLowerCase();
-    const email = row.children[1].textContent.toLowerCase();
-    row.style.display = (name.includes(query) || email.includes(query)) ? "" : "none";
-  });
-});
+// Load table on page start
+loadUsers();
