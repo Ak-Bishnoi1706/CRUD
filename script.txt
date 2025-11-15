@@ -1,0 +1,72 @@
+const firebaseConfig = {
+    apiKey: "AIzaSyCfNUJ2LnkrjKRXt13ZquK4YsRh5RY5JBw",
+    authDomain: "minor-project-01-382d4.firebaseapp.com",
+    projectId: "minor-project-01-382d4",
+    storageBucket: "minor-project-01-382d4.firebasestorage.app",
+    messagingSenderId: "47003808844",
+    appId: "1:47003808844:web:c8e3c22b5ce81744fd70e9",
+    measurementId: "G-K814ZL2HJ9"
+  };
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+// const analytics = getAnalytics(app);
+const database = getDatabase(app);
+const studentRef = ref(database, "students");
+
+// ✅ Handle form submit
+document.getElementById("StudentForm").addEventListener("submit", function (e) {
+  e.preventDefault();
+
+  const name = document.getElementById("name").value;
+  const email = document.getElementById("InputEmail").value;
+  const rollno = document.getElementById("rollNo").value;
+
+ const newStudentRef = studentRef.push();
+newStudentRef.set({ name, email, rollno });
+
+  document.getElementById("StudentForm").reset();
+});
+
+// ✅ Fetch and display data
+studentRef.on("value", (snapshot) => {
+  const tableBody = document.getElementById("studentTableBody");
+  tableBody.innerHTML = "";
+
+  snapshot.forEach((childSnapshot) => {
+    const student = childSnapshot.val();
+    const studentId = childSnapshot.key;
+
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${student.name}</td>
+      <td>${student.email}</td>
+      <td>${student.rollno}</td>
+      <td>
+        <button class="edit-btn btn btn-sm btn-warning" data-id="${studentId}">Edit</button>
+        <button class="delete-btn btn btn-sm btn-danger" data-id="${studentId}">Delete</button>
+      </td>
+    `;
+
+    tableBody.appendChild(row);
+  });
+});
+
+// ✅ Delete student
+document.getElementById("studentTableBody").addEventListener("click", function (e) {
+  if (e.target.classList.contains("delete-btn")) {
+    const studentId = e.target.getAttribute("data-id");
+    firebase.database().ref("students/" + studentId).remove();
+  }
+});
+
+// ✅ Search student
+document.getElementById("searchInput").addEventListener("input", function () {
+  const query = this.value.toLowerCase();
+  const rows = document.querySelectorAll("#studentTableBody tr");
+
+  rows.forEach(row => {
+    const name = row.children[0].textContent.toLowerCase();
+    const email = row.children[1].textContent.toLowerCase();
+    row.style.display = (name.includes(query) || email.includes(query)) ? "" : "none";
+  });
+});

@@ -57,7 +57,76 @@
 
     </tbody>
     </table>
-    <script src="script.js"></script>
-</body>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-database.js";
 
+const firebaseConfig = {
+    apiKey: "AIzaSyCfNUJ2LnkrjKRXt13ZquK4YsRh5RY5JBw",
+    authDomain: "minor-project-01-382d4.firebaseapp.com",
+    projectId: "minor-project-01-382d4",
+    storageBucket: "minor-project-01-382d4.firebasestorage.app",
+    messagingSenderId: "47003808844",
+    appId: "1:47003808844:web:c8e3c22b5ce81744fd70e9",
+    measurementId: "G-K814ZL2HJ9"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+const studentRef = ref(database, "students");
+
+// Submit data
+document.getElementById("StudentForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  const name = document.getElementById("name").value;
+  const email = document.getElementById("InputEmail").value;
+  const rollno = document.getElementById("rollNo").value;
+
+  const newStudentRef = push(studentRef);
+  set(newStudentRef, { name, email, rollno });
+
+  document.getElementById("StudentForm").reset();
+});
+
+// Fetch
+onValue(studentRef, (snapshot) => {
+  const tableBody = document.getElementById("studentTableBody");
+  tableBody.innerHTML = "";
+  snapshot.forEach(child => {
+    const student = child.val();
+    const id = child.key;
+
+ tableBody.innerHTML += `
+      <tr>
+        <td>${student.name}</td>
+        <td>${student.email}</td>
+        <td>${student.rollno}</td>
+        <td><button class="delete-btn btn btn-danger btn-sm" data-id="${id}">Delete</button></td>
+      </tr>`;
+  });
+});
+
+// Delete
+document.getElementById("studentTableBody").addEventListener("click", (e) => {
+  if (e.target.classList.contains("delete-btn")) {
+    const id = e.target.getAttribute("data-id");
+    remove(ref(database, "students/" + id));
+  }
+});
+
+// Search
+document.getElementById("searchBox").addEventListener("input", function () {
+  const query = this.value.toLowerCase();
+  const rows = document.querySelectorAll("#studentTableBody tr");
+
+  rows.forEach(row => {
+    const name = row.children[0].textContent.toLowerCase();
+    const email = row.children[1].textContent.toLowerCase();
+    row.style.display = (name.includes(query) || email.includes(query)) ? "" : "none";
+  });
+});
+</script>
+</body>
 </html>
