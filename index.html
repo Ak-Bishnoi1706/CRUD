@@ -103,10 +103,20 @@ onValue(studentRef, (snapshot) => {
         <td>${student.name}</td>
         <td>${student.email}</td>
         <td>${student.rollno}</td>
+        <td><button class="edit-btn btn btn-sm btn-warning" data-id="${id}">Edit</button></td>
         <td><button class="delete-btn btn btn-danger btn-sm" data-id="${id}">Delete</button></td>
       </tr>`;
   });
 });
+
+// Edit button
+    row.querySelector(".edit-btn").addEventListener("click", function () {
+      const cells = row.querySelectorAll("td");
+      document.getElementById("name").value = cells[0].textContent;
+      document.getElementById("InputEmail").value = cells[1].textContent;
+      document.getElementById("rollNo").value = cells[2].textContent;
+      row.remove();
+    });
 
 // Delete
 document.getElementById("studentTableBody").addEventListener("click", (e) => {
